@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Waveguides — The Circuit Traces of Light</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#090c10;
+  --panel:#141922;
+  --panel2:#1b212c;
+  --line:#242c39;
+  --core:#ff8a3d;
+  --core-dim:#a85a26;
+  --field:#5ee6e0;
+  --field-dim:#2e7c79;
+  --text:#edeff3;
+  --dim:#8b94a3;
+  --faint:#525a68;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:'IBM Plex Sans',sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--core);color:#111;}
+
+.page{position:relative;}
+.rail{
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:4px;
+  background:linear-gradient(180deg, transparent 0%, var(--core) 8%, transparent 16%, transparent 30%, var(--field) 38%, transparent 46%, transparent 62%, var(--core) 70%, transparent 78%, transparent 90%, var(--field) 98%, transparent 100%);
+  background-size:100% 320px;
+  animation:railpulse 6s linear infinite;
+  opacity:.55;
+}
+@keyframes railpulse{0%{background-position-y:0;}100%{background-position-y:640px;}}
+@media (prefers-reduced-motion:reduce){.rail{animation:none;} *{animation-duration:.001s !important;}}
+
+main.content{
+  max-width:720px;
+  margin:0 auto;
+  padding:0 22px 0 30px;
+}
+
+section{padding:56px 0; border-bottom:1px solid var(--line);}
+section:last-of-type{border-bottom:none;}
+
+.eyebrow{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--core);
+  margin:0 0 14px;
+}
+h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:700;
+  font-size:clamp(30px,7vw,46px);
+  line-height:1.05;
+  margin:0 0 16px;
+  letter-spacing:-.01em;
+}
+h2{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:clamp(20px,4.5vw,26px);
+  margin:0 0 6px;
+  letter-spacing:-.005em;
+}
+h3{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:16px;
+  margin:0 0 4px;
+}
+p{line-height:1.65; color:var(--dim); margin:0 0 14px; font-size:15px;}
+p.lead{color:var(--text); font-size:16.5px;}
+.subhead{color:var(--dim); font-size:12.5px; margin:0 0 26px; text-transform:uppercase; letter-spacing:.08em; font-family:'IBM Plex Mono',monospace;}
+strong{color:var(--text); font-weight:600;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+a.note-link{color:var(--field);}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:20px;
+}
+.tag{
+  display:inline-block;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  letter-spacing:.08em;
+  color:var(--field);
+  background:rgba(94,230,224,.08);
+  border:1px solid var(--field-dim);
+  border-radius:20px;
+  padding:3px 10px;
+  margin-bottom:12px;
+}
+
+svg{display:block; width:100%; height:auto;}
+.caption{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--faint); margin-top:10px; line-height:1.5;}
+
+/* HERO */
+.hero{padding-top:64px;}
+.hero-visual{margin:22px 0 24px; border-radius:10px; overflow:hidden; background:radial-gradient(ellipse at 30% 20%, #1a1420 0%, var(--bg) 70%); border:1px solid var(--line);}
+
+/* Sliders */
+.control{margin:16px 0;}
+.control label{display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--dim); margin-bottom:6px;}
+.control label span.val{color:var(--core);}
+input[type=range]{
+  width:100%;
+  -webkit-appearance:none;
+  height:4px;
+  border-radius:2px;
+  background:var(--line);
+  outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:18px; height:18px; border-radius:50%;
+  background:var(--core);
+  border:3px solid var(--bg);
+  box-shadow:0 0 0 1px var(--core);
+  cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:16px; height:16px; border-radius:50%;
+  background:var(--core); border:3px solid var(--bg);
+  box-shadow:0 0 0 1px var(--core); cursor:pointer;
+}
+
+.readout{
+  display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
+}
+.readout .stat{
+  flex:1 1 120px;
+  background:var(--panel2);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:10px 12px;
+}
+.readout .stat .k{font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint); text-transform:uppercase; letter-spacing:.06em;}
+.readout .stat .v{font-family:'IBM Plex Mono',monospace; font-size:15px; color:var(--text); margin-top:3px;}
+.verdict{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:13px;
+  padding:9px 12px;
+  border-radius:8px;
+  margin-top:12px;
+  border:1px solid;
+}
+.verdict.ok{color:var(--field); border-color:var(--field-dim); background:rgba(94,230,224,.07);}
+.verdict.warn{color:var(--core); border-color:var(--core-dim); background:rgba(255,138,61,.08);}
+
+/* Type toggle */
+.toggle-row{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;}
+.toggle-btn{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  background:var(--panel2);
+  border:1px solid var(--line);
+  color:var(--dim);
+  padding:8px 14px;
+  border-radius:20px;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.toggle-btn.active{color:var(--bg); background:var(--core); border-color:var(--core); font-weight:600;}
+.type-view{display:none;}
+.type-view.active{display:block;}
+
+/* Stack */
+.stack-wrap{display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap;}
+.stack-svg{flex:1 1 160px; max-width:190px;}
+.stack-info{flex:2 1 220px; min-width:220px;}
+.stack-layer{cursor:pointer; transition:opacity .15s;}
+.stack-layer:hover{opacity:.85;}
+#stackDetail .k{font-family:'IBM Plex Mono',monospace; color:var(--core); font-size:11.5px; text-transform:uppercase; letter-spacing:.06em;}
+#stackDetail .t{font-family:'IBM Plex Mono',monospace; color:var(--field); font-size:13px; margin:3px 0 8px;}
+
+/* Loss list */
+.loss-list{display:grid; gap:10px; margin-top:16px;}
+.loss-item{
+  display:grid; grid-template-columns:34px 1fr; gap:12px;
+  background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:12px 14px;
+}
+.loss-item .glyph{font-family:'IBM Plex Mono',monospace; color:var(--core); font-size:18px; text-align:center;}
+.loss-item p{margin:0; font-size:13.5px;}
+.loss-item h3{margin-bottom:3px;}
+
+/* Blocks grid */
+.blocks-grid{display:grid; gap:10px; margin-top:16px;}
+details.block{
+  background:var(--panel); border:1px solid var(--line); border-radius:8px;
+  padding:0; overflow:hidden;
+}
+details.block summary{
+  list-style:none; cursor:pointer;
+  padding:14px 16px;
+  display:flex; justify-content:space-between; align-items:center;
+  font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14.5px;
+}
+details.block summary::-webkit-details-marker{display:none;}
+details.block summary::after{
+  content:'+'; font-family:'IBM Plex Mono',monospace; color:var(--core); font-size:18px;
+  transition:transform .2s;
+}
+details.block[open] summary::after{transform:rotate(45deg);}
+details.block .block-body{padding:0 16px 16px;}
+details.block .block-body p{margin-bottom:6px; font-size:13.5px;}
+.spec-line{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--field);}
+
+/* Specs table */
+table.specs{width:100%; border-collapse:collapse; margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:12.5px;}
+table.specs td{padding:9px 6px; border-bottom:1px solid var(--line); color:var(--dim);}
+table.specs td:first-child{color:var(--text);}
+table.specs td:last-child{color:var(--core); text-align:right;}
+
+/* Apps */
+.apps-grid{display:grid; grid-template-columns:1fr; gap:10px; margin-top:16px;}
+@media(min-width:520px){.apps-grid{grid-template-columns:1fr 1fr;}}
+.app-card{background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px 16px;}
+.app-card h3{color:var(--field);}
+.app-card p{font-size:13px; margin:0;}
+
+footer{padding:44px 0 70px; text-align:left;}
+footer p{font-size:12px; color:var(--faint); font-family:'IBM Plex Mono',monospace; line-height:1.7;}
+
+@media(min-width:640px){
+  main.content{padding-left:40px;}
+  section{padding:72px 0;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="rail" aria-hidden="true"></div>
+  <main class="content">
+
+    <!-- HERO -->
+    <section class="hero">
+      <p class="eyebrow">Silicon Photonics — Interactive Field Guide</p>
+      <h1>Waveguides: the circuit traces of light</h1>
+      <p class="lead">A copper trace guides electrons across a chip. A <strong>waveguide</strong> does the same job for photons — a nanometre-scale channel etched into silicon that steers light exactly where a photonic integrated circuit (PIC) needs it. Everything below is the physics, geometry, and fabrication reality that makes that possible.</p>
+      <div class="hero-visual panel">
+        <svg viewBox="0 0 320 150" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="320" height="150" fill="none"/>
+          <rect x="10" y="35" width="300" height="80" rx="4" fill="none" stroke="#242c39" stroke-width="1"/>
+          <line x1="10" y1="35" x2="310" y2="35" stroke="#3a4456" stroke-width="1.5"/>
+          <line x1="10" y1="115" x2="310" y2="115" stroke="#3a4456" stroke-width="1.5"/>
+          <text x="16" y="28" font-family="IBM Plex Mono" font-size="9" fill="#525a68">n(cladding) = 1.44</text>
+          <text x="16" y="132" font-family="IBM Plex Mono" font-size="9" fill="#525a68">core: n(Si) = 3.48</text>
+          <path id="zigzag" d="M14,75 L64,45 L114,105 L164,45 L214,105 L264,45 L306,75" fill="none" stroke="#a85a26" stroke-width="1.5" stroke-dasharray="3,3" opacity="0.55"/>
+          <circle r="4.5" fill="#ff8a3d">
+            <animateMotion dur="4s" repeatCount="indefinite" path="M14,75 L64,45 L114,105 L164,45 L214,105 L264,45 L306,75"/>
+          </circle>
+        </svg>
+      </div>
+      <p class="caption">A photon bouncing down a waveguide core by total internal reflection — the same principle explored interactively below.</p>
+    </section>
+
+    <!-- TIR -->
+    <section id="tir">
+      <span class="tag">01 — the core principle</span>
+      <h2>Total internal reflection</h2>
+      <p class="subhead">why light stays inside the core</p>
+      <p>A waveguide only works if the core's refractive index is higher than the cladding around it. Silicon (n ≈ 3.48 at 1550&nbsp;nm) surrounded by silicon dioxide (n ≈ 1.44) gives an index contrast of <strong>Δn ≈ 2.0</strong> — among the highest of any waveguide platform on Earth. That's why silicon photonic waveguides can bend light around corners with radii of just a few microns, while an optical fibre needs millimetres.</p>
+      <p>Below the <strong>critical angle</strong> θc = arcsin(n_clad / n_core) ≈ 24.4°, light hitting the core-cladding interface reflects back completely — nothing escapes. Above it, light punches through and radiates away. Drag the slider to find the boundary.</p>
+      <div class="panel">
+        <svg viewBox="0 0 300 190" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="300" height="95" fill="#1b212c"/>
+          <rect x="0" y="95" width="300" height="95" fill="#101318"/>
+          <line x1="0" y1="95" x2="300" y2="95" stroke="#3a4456" stroke-width="1.5"/>
+          <line x1="150" y1="30" x2="150" y2="95" stroke="#3a4456" stroke-width="1" stroke-dasharray="2,3"/>
+          <text x="8" y="16" font-family="IBM Plex Mono" font-size="9.5" fill="#8b94a3">core (Si, n=3.48)</text>
+          <text x="8" y="178" font-family="IBM Plex Mono" font-size="9.5" fill="#8b94a3">cladding (SiO₂, n=1.44)</text>
+          <line id="tirIncident" x1="150" y1="95" x2="150" y2="95" stroke="#ff8a3d" stroke-width="2.5"/>
+          <line id="tirReflected" x1="150" y1="95" x2="150" y2="95" stroke="#ff8a3d" stroke-width="2.5"/>
+          <line id="tirRefracted" x1="150" y1="95" x2="150" y2="95" stroke="#5ee6e0" stroke-width="2.5" opacity="0"/>
+          <circle cx="150" cy="95" r="3" fill="#edeff3"/>
+        </svg>
+        <div class="control">
+          <label for="tirSlider">Angle of incidence, from normal <span class="val" id="tirAngleVal">10°</span></label>
+          <input type="range" id="tirSlider" min="0" max="85" value="10" step="1" aria-label="Angle of incidence in degrees">
+        </div>
+        <div id="tirVerdict" class="verdict ok">GUIDED — total internal reflection. All light stays in the core.</div>
+      </div>
+    </section>
+
+    <!-- SOI STACK -->
+    <section id="stack">
+      <span class="tag">02 — the platform</span>
+      <h2>The SOI wafer stack</h2>
+      <p class="subhead">silicon-on-insulator, layer by layer</p>
+      <p>Silicon photonics is built on <strong>Silicon-on-Insulator (SOI)</strong> wafers — the same substrate family used for advanced logic, which is why photonic circuits can piggyback on mature CMOS fabs. Tap a layer to see what it does.</p>
+      <div class="panel stack-wrap">
+        <div class="stack-svg">
+          <svg viewBox="0 0 120 200" xmlns="http://www.w3.org/2000/svg">
+            <rect class="stack-layer" data-id="sub" x="10" y="140" width="100" height="50" fill="#2a3040" stroke="#3a4456"/>
+            <rect class="stack-layer" data-id="box" x="10" y="115" width="100" height="25" fill="#233042" stroke="#3a4456"/>
+            <rect class="stack-layer" data-id="dev" x="10" y="102" width="100" height="13" fill="#ff8a3d" stroke="#a85a26"/>
+            <rect class="stack-layer" data-id="clad" x="10" y="60" width="100" height="42" fill="#1c2836" stroke="#3a4456"/>
+          </svg>
+        </div>
+        <div class="stack-info" id="stackDetail">
+          <div class="k">Silicon device layer</div>
+          <div class="t">220 nm (industry standard)</div>
+          <p style="margin:0;">This thin top silicon layer is where waveguides are etched. 220&nbsp;nm became the de-facto standard because it balances tight single-mode confinement at 1550&nbsp;nm against realistic lithography and etch tolerances — most multi-project-wafer foundries (imec, AMF, GlobalFoundries, TSMC's photonics line) build around it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- WAVEGUIDE TYPES -->
+    <section id="types">
+      <span class="tag">03 — geometry</span>
+      <h2>Three ways to shape a core</h2>
+      <p class="subhead">strip, rib, and slot waveguides</p>
+      <div class="panel">
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-type="strip">Strip</button>
+          <button class="toggle-btn" data-type="rib">Rib</button>
+          <button class="toggle-btn" data-type="slot">Slot</button>
+        </div>
+
+        <div class="type-view active" data-type="strip">
+          <svg viewBox="0 0 260 110" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="70" width="240" height="20" fill="#1c2836"/>
+            <rect x="105" y="45" width="50" height="25" fill="#ff8a3d"/>
+            <rect x="10" y="20" width="240" height="25" fill="#141922" stroke="#242c39"/>
+          </svg>
+          <p style="margin-top:10px;"><strong>Strip (channel) waveguide</strong> — fully etched down to the buried oxide, light confined on all sides by cladding. Strongest confinement, tightest bend radii (~5&nbsp;µm), but rough etched sidewalls scatter more light — the dominant loss source on this geometry.</p>
+        </div>
+
+        <div class="type-view" data-type="rib">
+          <svg viewBox="0 0 260 110" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="70" width="240" height="20" fill="#1c2836"/>
+            <rect x="10" y="58" width="240" height="12" fill="#a85a26"/>
+            <rect x="95" y="40" width="70" height="18" fill="#ff8a3d"/>
+            <rect x="10" y="20" width="240" height="20" fill="#141922" stroke="#242c39"/>
+          </svg>
+          <p style="margin-top:10px;"><strong>Rib (ridge) waveguide</strong> — only partially etched, leaving a thin slab connecting the core to the surrounding silicon. The mode sits further from rough sidewalls, so loss drops sharply (&lt;0.1&nbsp;dB/cm achievable). The slab also lets you dope silicon laterally to build electrodes — this is the standard geometry for phase shifters and modulators.</p>
+        </div>
+
+        <div class="type-view" data-type="slot">
+          <svg viewBox="0 0 260 110" xmlns="http://www.w3.org/2000/svg">
+            <rect x="10" y="70" width="240" height="20" fill="#1c2836"/>
+            <rect x="95" y="42" width="28" height="28" fill="#ff8a3d"/>
+            <rect x="137" y="42" width="28" height="28" fill="#ff8a3d"/>
+            <rect x="123" y="42" width="14" height="28" fill="#5ee6e0" opacity="0.8"/>
+            <rect x="10" y="20" width="240" height="18" fill="#141922" stroke="#242c39"/>
+          </svg>
+          <p style="margin-top:10px;"><strong>Slot waveguide</strong> — two high-index silicon rails separated by a nanometre-scale low-index gap. Counter-intuitively, the optical field concentrates in that gap due to the electric-field discontinuity at a high-to-low index boundary. Used for sensing and for infusing electro-optic polymers into an otherwise passive silicon platform.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODE SIMULATOR -->
+    <section id="modesim">
+      <span class="tag">04 — signature interactive</span>
+      <h2>Mode confinement simulator</h2>
+      <p class="subhead">single-mode vs. multimode, at λ = 1550 nm (C-band)</p>
+      <p>A waveguide's cross-section decides how many optical modes it can carry. Too wide, and a second-order mode sneaks in — bad news for interference-based devices like modulators, which depend on exactly one mode. Drag the core dimensions and watch the field respond. <em>(Simplified 2D visualization for intuition — not a rigorous mode solver.)</em></p>
+      <div class="panel">
+        <svg viewBox="0 0 260 140" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="fieldGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#5ee6e0" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#5ee6e0" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect x="0" y="0" width="260" height="140" fill="#0e1116"/>
+          <rect id="modeCore" x="105" y="55" width="50" height="30" fill="none" stroke="#a85a26" stroke-width="1.5"/>
+          <ellipse id="modeField1" cx="130" cy="70" rx="18" ry="12" fill="url(#fieldGrad)"/>
+          <ellipse id="modeField2" cx="130" cy="70" rx="6" ry="10" fill="url(#fieldGrad)" opacity="0"/>
+        </svg>
+        <div class="control">
+          <label for="widthSlider">Core width <span class="val" id="widthVal">450 nm</span></label>
+          <input type="range" id="widthSlider" min="250" max="700" value="450" step="10">
+        </div>
+        <div class="control">
+          <label for="heightSlider">Core height (etch depth) <span class="val" id="heightVal">220 nm</span></label>
+          <input type="range" id="heightSlider" min="90" max="320" value="220" step="10">
+        </div>
+        <div class="readout">
+          <div class="stat"><div class="k">Cross-section</div><div class="v" id="dimReadout">450 × 220 nm</div></div>
+          <div class="stat"><div class="k">Normalized V</div><div class="v" id="vReadout">—</div></div>
+        </div>
+        <div id="modeVerdict" class="verdict ok">SINGLE-MODE — only TE₀ propagates.</div>
+      </div>
+    </section>
+
+    <!-- LOSS -->
+    <section id="loss">
+      <span class="tag">05 — the budget</span>
+      <h2>Where the photons go missing</h2>
+      <p class="subhead">loss mechanisms every design has to budget for</p>
+      <div class="loss-list">
+        <div class="loss-item">
+          <div class="glyph">≈≈</div>
+          <div><h3>Sidewall roughness scattering</h3><p>The dominant loss term in strip waveguides. Line-edge roughness from lithography and etch scatters light out of the guided mode — typically 1–3&nbsp;dB/cm on standard strip waveguides, under 0.5&nbsp;dB/cm on well-controlled rib geometries.</p></div>
+        </div>
+        <div class="loss-item">
+          <div class="glyph">⤵</div>
+          <div><h3>Bend loss</h3><p>Tighter bends leak more light — the mode can't turn the corner fast enough and radiates outward. Below the platform's minimum bend radius (~5&nbsp;µm on high-contrast SOI), loss rises sharply.</p></div>
+        </div>
+        <div class="loss-item">
+          <div class="glyph">⊗</div>
+          <div><h3>Absorption</h3><p>Free-carrier absorption in doped regions (needed for modulators) and two-photon absorption at high optical power both remove photons directly, converting them to heat or carriers.</p></div>
+        </div>
+        <div class="loss-item">
+          <div class="glyph">⋈</div>
+          <div><h3>Mode mismatch / coupling loss</h3><p>Every junction — fibre-to-chip, waveguide-to-waveguide, straight-to-bend — where the mode shape changes abruptly bleeds some light into radiation modes.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BUILDING BLOCKS -->
+    <section id="blocks">
+      <span class="tag">06 — the toolkit</span>
+      <h2>Building blocks of a PIC</h2>
+      <p class="subhead">tap each to expand</p>
+      <div class="blocks-grid">
+        <details class="block">
+          <summary>Grating coupler</summary>
+          <div class="block-body">
+            <p>Diffracts light vertically between the chip surface and an optical fibre, so light can enter/exit anywhere on the wafer — great for wafer-scale test.</p>
+            <p class="spec-line">Typical loss: 3–5 dB · wavelength & polarization dependent</p>
+          </div>
+        </details>
+        <details class="block">
+          <summary>Edge coupler</summary>
+          <div class="block-body">
+            <p>An inverse taper gradually expands the mode so it matches a fibre butt-coupled to the polished chip edge. Broadband and lower-loss than grating couplers, but needs facet polishing/dicing precision.</p>
+            <p class="spec-line">Typical loss: 0.5–2 dB · broadband</p>
+          </div>
+        </details>
+        <details class="block">
+          <summary>MMI splitter</summary>
+          <div class="block-body">
+            <p>A short multimode section that relies on self-imaging interference to split (or combine) power between output ports. Robust to fabrication variation and broadband — the workhorse power splitter.</p>
+            <p class="spec-line">Typical: 1×2 or 2×2, low wavelength sensitivity</p>
+          </div>
+        </details>
+        <details class="block">
+          <summary>Directional coupler</summary>
+          <div class="block-body">
+            <p>Two waveguides run close enough that light evanescently tunnels between them. The split ratio is set by gap and coupling length — precise, but more wavelength-sensitive than an MMI.</p>
+          </div>
+        </details>
+        <details class="block">
+          <summary>Ring resonator</summary>
+          <div class="block-body">
+            <p>A closed-loop waveguide builds up resonance whenever the round-trip length equals an integer number of wavelengths. Used as wavelength filters, modulators, and ultra-sensitive refractive-index sensors.</p>
+            <p class="spec-line">Key metrics: Q-factor, free spectral range (FSR)</p>
+          </div>
+        </details>
+        <details class="block">
+          <summary>Mach-Zehnder modulator (MZM)</summary>
+          <div class="block-body">
+            <p>Splits light into two arms, phase-shifts one via a doped pn-junction (carrier depletion/injection changes refractive index), then recombines the arms so phase modulation becomes intensity modulation. The core device inside every optical transceiver.</p>
+          </div>
+        </details>
+        <details class="block">
+          <summary>Ge-on-Si photodetector</summary>
+          <div class="block-body">
+            <p>Silicon is transparent at 1310/1550&nbsp;nm — useless as a detector there — so germanium is epitaxially grown on-chip to absorb the light and convert it back to an electrical signal.</p>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- FAB -->
+    <section id="fab">
+      <span class="tag">07 — from pattern to part</span>
+      <h2>Fabrication in three moves</h2>
+      <p class="subhead">where design rules meet the fab floor</p>
+      <p><strong>1. Lithography</strong> — DUV 193&nbsp;nm immersion steppers pattern the waveguide layout onto photoresist, using the same tool class as advanced CMOS logic, just with far looser critical dimensions.</p>
+      <p><strong>2. Etch</strong> — reactive-ion etching transfers the pattern into silicon. Sidewall angle and roughness set the loss budget for everything downstream — this is exactly the kind of critical dimension and defect signature that optical and e-beam wafer inspection tools are built to catch before it becomes a yield problem.</p>
+      <p><strong>3. Cladding deposition</strong> — PECVD oxide seals the core, completing the index contrast that makes the waveguide guide light in the first place.</p>
+    </section>
+
+    <!-- SPECS -->
+    <section id="specs">
+      <span class="tag">08 — spec sheet</span>
+      <h2>Design rules worth memorizing</h2>
+      <table class="specs">
+        <tr><td>Standard Si device layer</td><td>220 nm</td></tr>
+        <tr><td>Typical single-mode strip width</td><td>400–500 nm</td></tr>
+        <tr><td>Minimum bend radius</td><td>~5 µm</td></tr>
+        <tr><td>Minimum waveguide pitch (crosstalk)</td><td>2–3 µm</td></tr>
+        <tr><td>O-band</td><td>1260–1360 nm</td></tr>
+        <tr><td>C-band</td><td>1530–1565 nm</td></tr>
+        <tr><td>Strip waveguide propagation loss</td><td>1–3 dB/cm</td></tr>
+        <tr><td>Best-case rib waveguide loss</td><td>&lt;0.1 dB/cm</td></tr>
+        <tr><td>Index contrast, Si/SiO₂</td><td>Δn ≈ 2.0</td></tr>
+      </table>
+    </section>
+
+    <!-- APPS -->
+    <section id="apps">
+      <span class="tag">09 — why it matters</span>
+      <h2>Where these waveguides end up</h2>
+      <div class="apps-grid">
+        <div class="app-card"><h3>Datacenter interconnects</h3><p>Co-packaged optics move data between AI accelerator clusters at bandwidths copper can no longer sustain.</p></div>
+        <div class="app-card"><h3>LiDAR</h3><p>Optical phased arrays built from waveguide grids steer laser beams with no moving parts.</p></div>
+        <div class="app-card"><h3>Quantum photonics</h3><p>Waveguides route single photons for entanglement generation and photonic quantum computing.</p></div>
+        <div class="app-card"><h3>Biosensing</h3><p>Ring-resonator sensors detect molecular binding events through tiny refractive-index shifts.</p></div>
+      </div>
+    </section>
+
+    <footer>
+      <p>SILICON PHOTONICS FIELD GUIDE // n(Si)=3.48, n(SiO₂)=1.44 @ 1550nm // for reference only, verify against your foundry PDK</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+// ---- TIR demo ----
+const nCore = 3.48, nClad = 1.44;
+const critAngle = Math.asin(nClad/nCore) * 180/Math.PI; // ~24.4
+const tirSlider = document.getElementById('tirSlider');
+const tirAngleVal = document.getElementById('tirAngleVal');
+const tirIncident = document.getElementById('tirIncident');
+const tirReflected = document.getElementById('tirReflected');
+const tirRefracted = document.getElementById('tirRefracted');
+const tirVerdict = document.getElementById('tirVerdict');
+const L = 62, ox = 150, oy = 95;
+
+function updateTIR(){
+  const deg = parseFloat(tirSlider.value);
+  tirAngleVal.textContent = deg.toFixed(0) + '°';
+  const rad = deg * Math.PI/180;
+  // incident ray comes from upper side toward interface
+  const ix = ox - L*Math.sin(rad);
+  const iy = oy - L*Math.cos(rad);
+  tirIncident.setAttribute('x1', ix); tirIncident.setAttribute('y1', iy);
+  tirIncident.setAttribute('x2', ox); tirIncident.setAttribute('y2', oy);
+
+  if(deg >= critAngle){
+    // total internal reflection: mirror back into core
+    const rx = ox + L*Math.sin(rad);
+    const ry = oy - L*Math.cos(rad);
+    tirReflected.setAttribute('x1', ox); tirReflected.setAttribute('y1', oy);
+    tirReflected.setAttribute('x2', rx); tirReflected.setAttribute('y2', ry);
+    tirReflected.setAttribute('opacity', 1);
+    tirRefracted.setAttribute('opacity', 0);
+    tirVerdict.className = 'verdict ok';
+    tirVerdict.textContent = 'GUIDED — total internal reflection. All light stays in the core.';
+  } else {
+    // refracts out into cladding via Snell's law
+    const sinT = Math.min(1,(nCore/nClad) * Math.sin(rad));
+    const tRad = Math.asin(sinT);
+    const tx = ox + L*Math.sin(tRad);
+    const ty = oy + L*Math.cos(tRad);
+    tirRefracted.setAttribute('x1', ox); tirRefracted.setAttribute('y1', oy);
+    tirRefracted.setAttribute('x2', tx); tirRefracted.setAttribute('y2', ty);
+    tirRefracted.setAttribute('opacity', 1);
+    tirReflected.setAttribute('opacity', 0);
+    tirVerdict.className = 'verdict warn';
+    tirVerdict.textContent = 'LEAKS — angle below critical (' + critAngle.toFixed(1) + '°). Light radiates into the cladding.';
+  }
+}
+tirSlider.addEventListener('input', updateTIR);
+updateTIR();
+
+// ---- SOI stack ----
+const stackData = {
+  sub: {k:'Silicon handle substrate', t:'~725 µm', d:'Mechanical support for the whole wafer — far thicker than anything optically relevant, it plays no role in guiding light.'},
+  box: {k:'Buried oxide (BOX)', t:'2–3 µm SiO₂', d:'Isolates the waveguide layer from the high-index silicon substrate below. Without it, light would leak straight down into the handle wafer.'},
+  dev: {k:'Silicon device layer', t:'220 nm (standard)', d:'This thin top silicon layer is where waveguides are etched. 220 nm balances tight single-mode confinement at 1550 nm against realistic lithography and etch tolerances.'},
+  clad: {k:'Top cladding oxide', t:'~1–2 µm SiO₂', d:'Deposited after etch to seal the core and complete the index contrast on the top side, protecting the waveguide and enabling multi-layer routing above it.'}
+};
+document.querySelectorAll('.stack-layer').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const info = stackData[el.dataset.id];
+    document.querySelector('#stackDetail .k').textContent = info.k;
+    document.querySelector('#stackDetail .t').textContent = info.t;
+    document.querySelector('#stackDetail p').textContent = info.d;
+  });
+});
+
+// ---- waveguide type toggle ----
+document.querySelectorAll('.toggle-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.type-view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector('.type-view[data-type="'+btn.dataset.type+'"]').classList.add('active');
+  });
+});
+
+// ---- mode simulator ----
+const widthSlider = document.getElementById('widthSlider');
+const heightSlider = document.getElementById('heightSlider');
+const widthVal = document.getElementById('widthVal');
+const heightVal = document.getElementById('heightVal');
+const dimReadout = document.getElementById('dimReadout');
+const vReadout = document.getElementById('vReadout');
+const modeVerdict = document.getElementById('modeVerdict');
+const modeCore = document.getElementById('modeCore');
+const modeField1 = document.getElementById('modeField1');
+const modeField2 = document.getElementById('modeField2');
+const lambda = 1.55; // um
+const naEff = Math.sqrt(nCore*nCore - nClad*nClad);
+
+function updateMode(){
+  const wNm = parseFloat(widthSlider.value);
+  const hNm = parseFloat(heightSlider.value);
+  widthVal.textContent = wNm + ' nm';
+  heightVal.textContent = hNm + ' nm';
+  dimReadout.textContent = wNm + ' × ' + hNm + ' nm';
+
+  // illustrative normalized V parameter (not a rigorous 2D solve)
+  const wUm = wNm/1000, hUm = hNm/1000;
+  const geomFactor = Math.sqrt(wUm*hUm);
+  const V = (2*Math.PI/lambda) * (geomFactor/2) * naEff;
+  vReadout.textContent = V.toFixed(2);
+
+  // draw core box scaled
+  const cw = Math.max(20, wNm/1000*70);
+  const ch = Math.max(10, hNm/1000*70);
+  const cx = 130 - cw/2, cy = 70 - ch/2;
+  modeCore.setAttribute('x', cx); modeCore.setAttribute('y', cy);
+  modeCore.setAttribute('width', cw); modeCore.setAttribute('height', ch);
+
+  modeField1.setAttribute('rx', cw*0.55);
+  modeField1.setAttribute('ry', ch*0.6);
+
+  const multimode = V > 1.55; // illustrative threshold
+  if(multimode){
+    modeField2.setAttribute('opacity', 0.75);
+    modeField2.setAttribute('rx', cw*0.22);
+    modeField2.setAttribute('cx', 130 + cw*0.32);
+    modeVerdict.className = 'verdict warn';
+    modeVerdict.textContent = 'MULTIMODE — a second-order mode (TE₁) now propagates alongside TE₀.';
+  } else {
+    modeField2.setAttribute('opacity', 0);
+    modeVerdict.className = 'verdict ok';
+    modeVerdict.textContent = 'SINGLE-MODE — only TE₀ propagates.';
+  }
+}
+widthSlider.addEventListener('input', updateMode);
+heightSlider.addEventListener('input', updateMode);
+updateMode();
+</script>
+</body>
+</html>
